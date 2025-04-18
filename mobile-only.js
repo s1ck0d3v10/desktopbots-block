@@ -1,6 +1,6 @@
 /**
  * Script avançado para bloqueio de acesso via desktop e bots
- * Bloqueia bots de crawler, anúncios e indexadores
+ * Apenas dispositivos móveis são permitidos
  * Redireciona para about:blank em vez de mostrar mensagem
  */
 
@@ -30,22 +30,28 @@
 
   // Verifica se é um dispositivo móvel usando detecção melhorada
   function isMobileDevice() {
-    // Verifica user agent
-    const mobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(navigator.userAgent);
+    // CORREÇÃO: Usando OR em vez de AND para detectar móveis
+    // Se qualquer uma destas verificações indicar móvel, retornamos true
     
-    // Verifica tamanho da tela (maioria dos desktops > 1024px)
+    // Verifica user agent - principal verificação
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(navigator.userAgent)) {
+      return true;
+    }
+    
+    // Verificações secundárias para casos onde o user agent pode ser mascarado
+    // Combinação de tamanho de tela + recursos de toque
     const smallScreen = window.innerWidth < 1024;
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (smallScreen && hasTouch) {
+      return true;
+    }
     
-    // Verifica recursos touch
-    const hasTouch = 'ontouchstart' in window || 
-                     navigator.maxTouchPoints > 0 || 
-                     navigator.msMaxTouchPoints > 0;
-                     
-    // Detecta dispositivos móveis pela orientação
-    const hasOrientation = typeof window.orientation !== 'undefined';
+    // Verifica orientação (específico para dispositivos móveis)
+    if (typeof window.orientation !== 'undefined') {
+      return true;
+    }
     
-    // Combina verificações para maior precisão
-    return mobileUA && (smallScreen || hasTouch || hasOrientation);
+    return false;
   }
 
   // Verifica se é um bot baseado em lista expandida
@@ -70,7 +76,8 @@
     return false;
   }
 
-  // Bloqueia acesso se for desktop ou bot
+  // AQUI ESTÁ A CORREÇÃO PRINCIPAL:
+  // Bloqueia apenas se NÃO for mobile OU se for bot
   if (!isMobileDevice() || isBot()) {
     try {
       // Tenta primeiro abrir about:blank

@@ -1,69 +1,45 @@
 /**
- * Script de bloqueio simplificado - apenas baseado no User Agent
- * Bloqueia acessos via desktop e bots, permitindo apenas dispositivos móveis
+ * Script de diagnóstico - não bloqueia nada, apenas mostra informações do dispositivo
  */
 
 (function() {
-  // Lista de identificadores de bots
-  const botSignatures = [
-    // Bots de busca
-    'googlebot', 'bingbot', 'yandexbot', 'duckduckbot', 'slurp', 'baiduspider', 
-    'facebookexternalhit', 'facebot', 'twitterbot', 'rogerbot',
-    
-    // Crawlers de anúncios
-    'adsbot', 'mediapartners', 'google-adwords', 'adidxbot', 'google-shopping',
-    
-    // Outros crawlers
-    'bot', 'spider', 'crawl', 'scrape', 'fetch', 'archive', 'curl', 'wget',
-    
-    // Ferramentas de teste
-    'lighthouse', 'pagespeed', 'pingdom', 'gtmetrix', 'headless', 'phantom',
-    'selenium', 'webdriver', 'cypress', 'puppeteer',
-    
-    // Bots sociais
-    'pinterest', 'snapchat', 'linkedinbot', 'whatsapp', 'telegrambot',
-    
-    // Bots de análise
-    'semrush', 'ahrefs', 'moz', 'majestic', 'sistrix'
-  ];
+  // Cria elemento para mostrar informações
+  const infoDiv = document.createElement('div');
+  infoDiv.style.position = 'fixed';
+  infoDiv.style.top = '10px';
+  infoDiv.style.left = '10px';
+  infoDiv.style.zIndex = '99999';
+  infoDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
+  infoDiv.style.color = 'white';
+  infoDiv.style.padding = '10px';
+  infoDiv.style.borderRadius = '5px';
+  infoDiv.style.maxWidth = '80%';
+  infoDiv.style.wordBreak = 'break-all';
 
-  // Verifica se é um dispositivo móvel APENAS pelo user agent
-  function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(navigator.userAgent);
-  }
-
-  // Verifica se é um bot baseado na lista de assinaturas
-  function isBot() {
-    const ua = navigator.userAgent.toLowerCase();
-    
-    for (const signature of botSignatures) {
-      if (ua.includes(signature)) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  // Bloqueia acesso se NÃO for mobile OU se for bot
-  if (!isMobileDevice() || isBot()) {
-    try {
-      // Tenta primeiro abrir about:blank
-      window.location.replace('about:blank');
-    } catch (e) {
-      // Se falhar, tenta outros métodos
-      window.open('about:blank', '_top');
-      window.close();
-      
-      // Caso os métodos acima falhem, destrói o conteúdo
-      document.body.innerHTML = '';
-      document.head.innerHTML = '';
-      window.stop();
-      window.history.replaceState(null, '', 'about:blank');
-      
-      // Bloqueia qualquer interação
-      document.documentElement.style.display = 'none';
-      document.documentElement.style.visibility = 'hidden';
-    }
+  // Detecta dispositivo
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile/i.test(navigator.userAgent);
+  
+  // Exibe informações
+  infoDiv.innerHTML = `
+    <h3>Informações do Dispositivo</h3>
+    <p><strong>É mobile?</strong> ${isMobile ? 'SIM' : 'NÃO'}</p>
+    <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+    <p><strong>Largura tela:</strong> ${window.innerWidth}px</p>
+  `;
+  
+  // Adiciona botão para fechar
+  const closeBtn = document.createElement('button');
+  closeBtn.innerText = 'Fechar';
+  closeBtn.onclick = function() { document.body.removeChild(infoDiv); };
+  infoDiv.appendChild(closeBtn);
+  
+  // Adiciona à página
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.appendChild(infoDiv);
+  });
+  
+  // Se o DOM já estiver carregado
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    document.body.appendChild(infoDiv);
   }
 })();
